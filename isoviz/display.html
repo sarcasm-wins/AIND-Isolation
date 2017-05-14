@@ -36,10 +36,10 @@
 	  <input type="text" name="player2" value="Player2">
 	  <br>
 	  Move History:<br>
-	  <textarea rows="3" cols="120" name="moves" placeholder="[[0, 0], [3, 2], ...]"></textarea>
+	  <textarea rows="3" cols="120" name="moves" >[[4, 2], [2, 4], [6, 1], [4, 3], [5, 3], [2, 2], [4, 1], [3, 4], [2, 0], [1, 3], [3, 2], [2, 5], [1, 1], [3, 3], [0, 3], [5, 2], [1, 5], [4, 4], [3, 6], [6, 3], [5, 5], [5, 1]]</textarea>
 	  <br>
 	  <input type="submit" id="runGame" value="Run Game">
-	</form> 
+	</form>
 </div>
 
 <div id="display">
@@ -60,7 +60,7 @@ function ind2alpha(xy) {
 };
 
 function runGame(board) {
-	
+
 	form = document.getElementById("game_form");
 	if ( !form.player1.value || !form.player2.value || !form.moves.value)
 		return;
@@ -128,9 +128,9 @@ function runGame(board) {
 
 function init() {
 	var board = ChessBoard('board');
-	document.getElementById("game_form").addEventListener('submit', function(event) { 
+	document.getElementById("game_form").addEventListener('submit', function(event) {
 		event.preventDefault();
-		runGame(board); 
+		runGame(board);
 	});
 };
 $(document).ready(init);
