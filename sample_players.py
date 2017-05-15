@@ -7,7 +7,11 @@ own agent and example heuristic functions.
 """
 
 from random import randint
+import math
 
+class SearchTimeout(Exception):
+    """Subclass base exception for code clarity. """
+    pass
 
 def null_score(game, player):
     """This heuristic presumes no knowledge for non-terminal states, and
@@ -167,12 +171,22 @@ class GreedyPlayer():
     equivalent to a minimax search agent with a search depth of one.
     """
 
-    def __init__(self, score_fn=open_move_score):
+    def __init__(self, search_depth=3, score_fn=improved_score, timeout=10.):
+        self.search_depth = search_depth
         self.score = score_fn
+        self.time_left = None
+        self.TIMER_THRESHOLD = timeout
 
     def get_move(self, game, time_left):
-        """Select the move from the available legal moves with the highest
-        heuristic score.
+        """Search for the best move from the available legal moves and return a
+        result before the time limit expires.
+
+        **************  YOU DO NOT NEED TO MODIFY THIS FUNCTION  *************
+
+        For fixed-depth search, this function simply wraps the call to the
+        minimax method, but this method provides a common interface for all
+        Isolation agents, and you will replace it in the AlphaBetaPlayer with
+        iterative deepening search.
 
         Parameters
         ----------
@@ -186,18 +200,75 @@ class GreedyPlayer():
             the game.
 
         Returns
-        ----------
+        -------
         (int, int)
-            The move in the legal moves list with the highest heuristic score
-            for the current game state; may return (-1, -1) if there are no
-            legal moves.
+            Board coordinates corresponding to a legal move; may return
+            (-1, -1) if there are no available legal moves.
         """
+        self.time_left = time_left
+
+        # Initialize the best move so that this function returns something
+        # in case the search fails due to timeout
+        best_move = (-1, -1)
+
+        try:
+            # The try/except block will automatically catch the exception
+            # raised when the timer is about to expire.
+
+            return self.minimax(game, self.search_depth)
+
+        except SearchTimeout:
+            pass  # Handle any actions required after timeout as needed
+
+        # Return the best move from the last completed search iteration
+        return best_move
+
+    def minimax(self, game, depth):
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
         legal_moves = game.get_legal_moves()
+
         if not legal_moves:
             return (-1, -1)
-        print ([(self.score(game.forecast_move(m), self), m) for m in legal_moves])
-        _, move = max([(self.score(game.forecast_move(m), self), m) for m in legal_moves])
+
+        _, move = max([(self.minimizedvalue(game.forecast_move(m),depth-1),m) for m in legal_moves])
         return move
+
+    def maximizedvalue(self, game, depth):
+        if depth<=0:
+            return self.score(game,game.active_player)
+
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        val=-math.inf
+        legal_moves = game.get_legal_moves()
+        if not legal_moves:
+            return val
+
+        for m in legal_moves:
+            newval=self.minimizedvalue(game.forecast_move(m),depth-1)
+            val=max(val,newval)
+        return val
+
+    def minimizedvalue(self, game, depth):
+        if depth<=0:
+            return self.score(game,game.inactive_player)
+
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        val=math.inf
+        legal_moves = game.get_legal_moves()
+        if not legal_moves:
+            return val
+
+        for m in legal_moves:
+            newval=self.maximizedvalue(game.forecast_move(m),depth-1)
+            val=min(val,newval)
+        return val
+
 
 
 class HumanPlayer():
