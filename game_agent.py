@@ -5,11 +5,9 @@ and include the results in your report.
 import random
 import math
 
-
 class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
     pass
-
 
 def custom_score(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -46,7 +44,6 @@ def custom_score(game, player):
     opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
     return float(own_moves - opp_moves)
 
-
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
     of the given player.
@@ -79,8 +76,6 @@ def custom_score_2(game, player):
     own_moves = len(game.get_legal_moves(player))
     opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
     return float(own_moves - opp_moves)
-
-
 
 def custom_score_3(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -115,8 +110,6 @@ def custom_score_3(game, player):
     opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
     return float(own_moves - opp_moves)
 
-
-
 class IsolationPlayer:
     """Base class for minimax and alphabeta agents -- this class is never
     constructed or tested directly.
@@ -144,7 +137,6 @@ class IsolationPlayer:
         self.score = score_fn
         self.time_left = None
         self.TIMER_THRESHOLD = timeout
-
 
 class MinimaxPlayer(IsolationPlayer):
     """Game-playing agent that chooses a move using depth-limited minimax
@@ -303,13 +295,11 @@ class MinimaxPlayer(IsolationPlayer):
             val=min(val,newval)
         return val
 
-
 class AlphaBetaPlayer(IsolationPlayer):
     """Game-playing agent that chooses a move using iterative deepening minimax
     search with alpha-beta pruning. You must finish and test this player to
     make sure it returns a good move before the search time limit expires.
     """
-
     def get_move(self, game, time_left):
         """Search for the best move from the available legal moves and return a
         result before the time limit expires.
@@ -342,8 +332,20 @@ class AlphaBetaPlayer(IsolationPlayer):
         """
         self.time_left = time_left
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        # Initialize the best move so that this function returns something
+        # in case the search fails due to timeout
+        best_move = (-1, -1)
+
+        try:
+            # The try/except block will automatically catch the exception
+            # raised when the timer is about to expire.
+                best_move = self.alphabeta(game, self.search_depth)
+
+        except SearchTimeout:
+            pass  # Handle any actions required after timeout as needed
+
+        # Return the best move from the last completed search iteration
+        return best_move
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
         """Implement depth-limited minimax search with alpha-beta pruning as
@@ -393,4 +395,83 @@ class AlphaBetaPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        return (-1,-1)
+        legal_moves = game.get_legal_moves()
+
+        if not legal_moves:
+            return (-1, -1)
+
+        # First call is always for the player you initiated the minimax algorithm, hence maximized
+        _, move = max([(self.maximizedvalue(game.forecast_move(m),depth-1,alpha,beta),m) for m in legal_moves])
+        return move
+
+    def maximizedvalue(self, game, depth, alpha, beta):
+        """
+        Minimax implementation maximize utility function based on :
+        https://github.com/aimacode/aima-pseudocode/blob/master/md/Minimax-Decision.md
+
+        Parameters
+        ----------
+        game : `isolation.Board`
+            An instance of `isolation.Board` encoding the current state of the
+            game (e.g., player locations and blocked cells).
+
+        depth : Integer
+            Depth passed from minimize function
+
+        Returns
+        -------
+        val : Float
+            Returns float score that is maximized for this level in the three based on Player's move
+
+        """
+        if depth<=0:
+            return self.score(game,game.active_player)
+
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        val=-math.inf
+        legal_moves = game.get_legal_moves()
+        if not legal_moves:
+            return val
+
+        for m in legal_moves:
+            newval=self.minimizedvalue(game.forecast_move(m),depth-1)
+            val=max(val,newval)
+        return val
+
+    def minimizedvalue(self, game, depth, alpha, beta):
+        """
+        Minimax implementation minimize utility function based on :
+        https://github.com/aimacode/aima-pseudocode/blob/master/md/Minimax-Decision.md
+
+        Parameters
+        ----------
+        game : `isolation.Board`
+            An instance of `isolation.Board` encoding the current state of the
+            game (e.g., player locations and blocked cells).
+
+        depth : Integer
+            Depth passed from original minimax function or maximize function
+
+        Returns
+        -------
+        val : Float
+            Returns float score that is minimized for this level in the three based on Opponent's move
+
+        """
+        if depth<=0:
+            return self.score(game,game.inactive_player)
+
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        val=math.inf
+        legal_moves = game.get_legal_moves()
+        if not legal_moves:
+            return val
+
+        for m in legal_moves:
+            newval=self.maximizedvalue(game.forecast_move(m),depth-1)
+            val=min(val,newval)
+        return val
