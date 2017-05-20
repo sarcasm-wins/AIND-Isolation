@@ -42,7 +42,7 @@ def custom_score(game, player):
 
     own_moves = len(game.get_legal_moves(player))
     opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
-    return float(0.55*own_moves - opp_moves)
+    return float(0.5*own_moves - opp_moves)
 
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -108,7 +108,17 @@ def custom_score_3(game, player):
 
     own_moves = len(game.get_legal_moves(player))
     opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
-    return float(1.5*own_moves - opp_moves)
+    filled_spaces = 49.0-len(game.get_blank_spaces())
+    w, h = game.width / 2., game.height / 2.
+    y, x = game.get_player_location(player)
+    own_dist = float((h - y)**2 + (w - x)**2)
+    y, x = game.get_player_location(game.get_opponent(player))
+    opp_dist = float((h - y)**2 + (w - x)**2)
+    if filled_spaces < 12 :
+        return float(opp_dist - 2*own_dist)
+    else:
+        return float((own_moves-3*opp_moves)*filled_spaces)
+
 
 '''
 def custom_score(game, player):
