@@ -117,11 +117,11 @@ def custom_score_3(game, player):
     opp_moves = game.get_legal_moves(game.get_opponent(player))
     own_moves = game.get_legal_moves(player)
     if len(list(set(opp_moves) & set(own_moves))) > 0 and len(own_moves)>len(opp_moves) :
-        return len(own_moves)*(49.0-len(game.get_blank_spaces()))*1.5
-    elif len(list(set(opp_moves) & set(own_moves))) == 1  and len(own_moves)==1:
         return len(own_moves)*(49.0-len(game.get_blank_spaces()))*3
+    elif len(list(set(opp_moves) & set(own_moves))) == 1  and len(own_moves)==1:
+        return len(own_moves)*(49.0-len(game.get_blank_spaces()))*5
     else :
-        return float(2*len(game.get_legal_moves(player)))
+        return float(3*len(game.get_legal_moves(player)))
 
 
 class IsolationPlayer:
@@ -310,6 +310,14 @@ class MinimaxPlayer(IsolationPlayer):
 
 class AlphaBetaPlayer(IsolationPlayer):
 
+    def __init__(self, search_depth=3, score_fn=custom_score, timeout=10.):
+        IsolationPlayer.__init__(self, search_depth, score_fn, timeout)
+        self.myname=str(score_fn)
+        self.max_depth=0
+
+    def __del__(self):
+        print("Maximum depth reached by {} object was :{}".format(self.myname,self.max_depth))
+
     def get_move(self, game, time_left):
         """
         Method iteratively deepens and uses alphabeta technique to return the best move
@@ -337,7 +345,8 @@ class AlphaBetaPlayer(IsolationPlayer):
             # raised when the timer is about to expire.
             for depth in range(1,50000):
                 best_move = self.alphabeta(game, depth)
-
+                if depth > self.max_depth:
+                    self.max_depth=depth
         except SearchTimeout:
             return best_move
 
